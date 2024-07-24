@@ -1,0 +1,84 @@
+simid dm_07100
+ncell     70 140 1
+BC        P         P         0                 Boundary conditions (0=vacuum,P=periodic)
+cell      2.00000   0.00000   0.00000 
+          0.00000   1.00000   0.00000
+          0.00000   0.00000   4.00000
+
+do_prnstruct 2
+posfile   ./posfile
+exchange ./jij
+momfile ./momfile
+dm ./dmdata
+anisotropy ./kfile
+maptype 1
+dm_scale 0.71
+
+SDEalgh   1                                     SDE-solver. 1=heun, 2=euler
+Initmag   3                                     (1=random, 2=cone, 3=spec., 4=file)
+
+# ip_mode SX = parallel tempering of 1q, 3q, PM and initmag configurations
+# Then one needs to have ip_mcanneal 4 with four identical lines giving
+# number of iterations and temperature for the four configurations
+# Alternatively ip_mode Y tries only for 3q-structures (skyrmion-like)
+ip_mode Y
+ip_mcanneal 4
+100 0.0000001
+100 0.0000001
+100 0.0000001
+100 0.0000001
+
+ip_hfield 0.0 0.0 0.0
+
+# New flags: qm_relax enables Monte Carlo relaxations of the spiral structures
+# The relaxation consists of qm_relax_steps MC sweeps using the mode set by
+# qm_relax_mode ([H]eat bath or [M]etropolis] at the temperature set by
+# qm_relax_temp.
+qm_relax Y
+qm_relax_mode H
+qm_relax_steps 150
+qm_relax_temp 1.0e-4
+
+# qm_exclude allows for excluding spin-spiral creation for certain atoms. Below
+# three atoms are exluded, namely atoms 2,3, and 4
+qm_exclude 6
+3
+4
+5
+6
+7
+8
+# Directions for the spins in the 1q and 3q spin spirals
+# The choice belows seems to be most energetically favourable 
+# (at least for a positive q-vector)
+qm_nvec 0 0 -1
+qm_svec -1 -1 0 
+
+mode      S                                     M for MC and S for SD
+temp      0.0001
+damping   0.5000
+Nstep     8000
+timestep  1.000e-15       s                    The time step-size for the SDE-solver
+
+#hfield    0.0 0.0 0.0
+
+# Now the q-vector mesh is first created by the bash script
+# qmaker_mod.sh where running it like
+# ./qmaker_mod.sh NN
+# where NN is an integer, sets up a line of q-vectors corresponding
+# to the range of 0 to NN skyrmions fitting into the sample.
+qpoints F
+qfile ./qfile
+
+plotenergy   1   
+
+do_avrg Y
+do_proj_avrg Y
+
+# skyno T for triangulation algorithm for skyrmion number
+#skyno T
+# projected skyrmion numbers with do_proj_skyno Y
+#do_proj_skyno Y
+# print skyrmion density (site resolved) with do_skyno_den Y
+# Currently disabled since it is costly
+#do_skyno_den Y
